@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<TcEventSources Version="2">
+	<Source>
+		<GUID>{28111931-4543-0044-0502-000000000300}</GUID>
+		<Name LcId="1033">EC-HH00-C1NN V3.0</Name>
+		<Event>
+			<Id>1</Id>
+			<Message LcId="1033">State change Request From: {0} To:{1}</Message>
+		</Event>
+		<Event>
+			<Id>2</Id>
+			<Message LcId="1033">{0}</Message>
+		</Event>
+		<Event>
+			<Id>15</Id>
+			<Message LcId="1033">Calculate bus cycle time failed (Local timer too slow)</Message>
+		</Event>
+		<Event>
+			<Id>17</Id>
+			<Message LcId="1033">Sync Manager {0} invalid address ({1})</Message>
+		</Event>
+		<Event>
+			<Id>18</Id>
+			<Message LcId="1033">Sync Manager {0} invalid size ({1})</Message>
+		</Event>
+		<Event>
+			<Id>19</Id>
+			<Message LcId="1033">Sync Manager {0} invalid settings ({1})</Message>
+		</Event>
+		<Event>
+			<Id>32</Id>
+			<Message LcId="1033">DC activation register is invalid</Message>
+		</Event>
+		<Event>
+			<Id>33</Id>
+			<Message LcId="1033">Configured SyncType (0x1C32.1 or 0x1C33.1) not supported. Check DC registers and supported SyncTypes (0x1C32.4 and 0x1C33.4)</Message>
+		</Event>
+		<Property>
+			<Name>DisplayTxtId</Name>
+			<Value>true</Value>
+		</Property>
+	</Source>
+</TcEventSources>

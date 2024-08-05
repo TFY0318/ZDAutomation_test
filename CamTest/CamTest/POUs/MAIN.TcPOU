@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAIN" Id="{d3630ca2-4498-4809-adc1-b4b883cc9f75}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	axis1 : AXIS_REF;
+	axis2 : AXIS_REF;
+	
+	axis3 : AXIS_REF;
+	axis4 : AXIS_REF;
+	
+	mcpower1 : MC_Power;
+	mcpower2 : MC_Power;
+	
+	mcpower3 : MC_Power;
+	mcpower4 : MC_Power;
+	
+	mcgearin : MC_GearIn;
+	mcMoveAbsoluteAxis3 : MC_MoveAbsolute;
+	iGearStep : INT;
+	poweron2 : BOOL;
+	
+	mccamin : MC_CamIn;
+	mccamout : MC_CamOut;
+	
+	allow : BOOL;
+	poweron : BOOL;
+	
+	
+	
+	
+	bAllowGearin: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[axis1.ReadStatus();
+axis2.ReadStatus();
+axis3.ReadStatus();
+axis4.ReadStatus();
+Act();
+pCam();
+pGear();
+
+
+]]></ST>
+    </Implementation>
+    <Action Name="ACT" Id="{250d15a0-1ddb-44c6-89be-b1e729d18a12}">
+      <Implementation>
+        <ST><![CDATA[mcpower1(
+	Axis:=axis1 , 
+	Enable:=poweron , 
+	Enable_Positive:=poweron , 
+	Enable_Negative:=poweron , 
+	Override:= , 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Active=> , 
+	Error=> , 
+	ErrorID=> );
+	
+	mcpower2(
+	Axis:=axis2 , 
+	Enable:=poweron , 
+	Enable_Positive:=poweron , 
+	Enable_Negative:=poweron , 
+	Override:= , 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Active=> , 
+	Error=> , 
+	ErrorID=> );
+		
+    mcpower3(
+	Axis:=axis3 , 
+	Enable:=poweron2 , 
+	Enable_Positive:=poweron2 , 
+	Enable_Negative:=poweron2 , 
+	Override:= , 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Active=> , 
+	Error=> , 
+	ErrorID=> );
+		
+    mcpower4(
+	Axis:=axis4 , 
+	Enable:=poweron2 , 
+	Enable_Positive:=poweron2 , 
+	Enable_Negative:=poweron2 , 
+	Override:= , 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Active=> , 
+	Error=> , 
+	ErrorID=> );
+	
+	mcgearin(
+	Master:=axis3 , 
+	Slave:=axis4 , 
+	Execute:= , 
+	RatioNumerator:=1 , 
+	RatioDenominator:=1 , 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	InGear=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+    mcMoveAbsoluteAxis3(
+	Axis:=axis3 , 
+	Execute:= , 
+	Position:= , 
+	Velocity:= , 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+	mccamin(
+	Master:=axis1 , 
+	Slave:=axis2 , 
+	Execute:= , 
+	MasterOffset:= , 
+	SlaveOffset:= , 
+	MasterScaling:= , 
+	SlaveScaling:= , 
+	StartMode:= , 
+	CamTableID:=1 , 
+	BufferMode:= , 
+	Options:= , 
+	InSync=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+	]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="pCam" Id="{269ec8d5-6657-4ed0-a165-223126b717ac}">
+      <Implementation>
+        <ST><![CDATA[mccamin.Options.ActivationMode := MC_CAMACTIVATION_INSTANTANEOUS;
+
+IF allow THEN
+	mccamin.Execute := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="pGear" Id="{b97135ed-5f96-433b-986e-9f468144aa11}">
+      <Implementation>
+        <ST><![CDATA[CASE iGearStep OF
+	0:
+    IF poweron2 THEN
+		iGearStep := 1;
+    END_IF
+    1:
+	IF axis3.Status.ControlLoopClosed AND axis4.Status.ControlLoopClosed THEN
+		iGearStep := 2;
+	END_IF
+    2:
+    IF bAllowGearin THEN
+		iGearStep := 3;
+    END_IF
+    3:
+	mcgearin.Execute := TRUE;
+    mcMoveAbsoluteAxis3.Execute := TRUE;
+    mcMoveAbsoluteAxis3.Position := 20;
+	mcMoveAbsoluteAxis3.Velocity := 0.4;
+    IF mcMoveAbsoluteAxis3.Done THEN
+		mcMoveAbsoluteAxis3.Execute := FALSE;
+		iGearStep := 4;
+	END_IF
+    4:
+	mcMoveAbsoluteAxis3.Execute := TRUE;
+	mcMoveAbsoluteAxis3.Position := 0;
+	mcMoveAbsoluteAxis3.Velocity := 0.4;
+	IF mcMoveAbsoluteAxis3.Done THEN
+		mcMoveAbsoluteAxis3.Execute := FALSE;
+		iGearStep :=2;
+	END_IF
+	
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Action>
+    <LineIds Name="MAIN">
+      <LineId Id="2" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="11" Count="1" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.ACT">
+      <LineId Id="2" Count="11" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="11" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="53" Count="10" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="66" Count="10" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="79" Count="15" />
+      <LineId Id="49" Count="1" />
+      <LineId Id="110" Count="14" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="30" Count="16" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="47" Count="1" />
+    </LineIds>
+    <LineIds Name="MAIN.pCam">
+      <LineId Id="4" Count="1" />
+      <LineId Id="1" Count="2" />
+    </LineIds>
+    <LineIds Name="MAIN.pGear">
+      <LineId Id="13" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="19" Count="1" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="22" Count="2" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="35" Count="2" />
+      <LineId Id="39" Count="1" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="4" Count="1" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
